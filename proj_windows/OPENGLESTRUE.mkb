@@ -1,0 +1,26 @@
+#!/usr/bin/env mkb
+
+includepaths
+{
+    ../source
+    ./
+}
+
+files
+{
+    OPENGLESTRUE.cpp
+    [source]
+    ../source/Game.h
+    ../source/Game.cpp
+    ../source/Helper.h
+}
+
+subprojects
+{
+    iwutil
+    iwgl
+}
+
+deployment
+{
+}
