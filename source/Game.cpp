@@ -1,23 +1,45 @@
 #include "Game.h"
+#include "Platform.h"
 
 // Shader sources
 const GLchar* vertexSource =
-"attribute vec2 position;"
-"attribute vec3 color;"
-"varying vec3 Color;"
+"attribute vec2 a_position;"
+"attribute vec3 a_color;"
+"varying vec3 v_color;"
+"uniform mat4 model;"
+"uniform mat4 view;"
+"uniform mat4 proj;"
 "void main() {"
-"   Color = color;"
-"   gl_Position = vec4(position, 0.0, 1.0);"
+"   v_color = a_color;"
+"   gl_Position = model * vec4(a_position, 0.0, 1.0);"
 "}";
 const GLchar* fragmentSource =
 "precision mediump float;\n"
-"varying vec3 Color;"
+"varying vec3 v_color;"
+"uniform mat4 modelColor;"
 "void main() {"
-"   gl_FragColor = vec4(Color, 1.0);"
+"   gl_FragColor = vec4(v_color, 1.0);"
 "}";
 
 namespace EasyGodzilla
 {
+	Game * Game::p_instance = 0;
+	GameDestroyer Game::destroyer;
+
+	GameDestroyer::~GameDestroyer() {
+		delete p_instance;
+	}
+	void GameDestroyer::initialize(Game* p) {
+		p_instance = p;
+	}
+	Game& Game::getInstance() {
+		if (!p_instance)     {
+			p_instance = new Game();
+			destroyer.initialize(p_instance);
+		}
+		return *p_instance;
+	}
+
 	void Game::Init()
 	{
 		// Create a Vertex Buffer Object and copy the vertex data to it
@@ -59,39 +81,59 @@ namespace EasyGodzilla
 		CheckShader(_fragmentShader, GL_COMPILE_STATUS, &ret, "unable to compile the fragment shader!");
 
 		// Link the vertex and fragment shader into a shader program
-		_shaderProgram = glCreateProgram();
-		glAttachShader(_shaderProgram, _vertexShader);
+		_globalProgram = glCreateProgram();
+		glAttachShader(_globalProgram, _vertexShader);
 		checkGlError("glAttachShader");
-		glAttachShader(_shaderProgram, _fragmentShader);
+		glAttachShader(_globalProgram, _fragmentShader);
 		checkGlError("glAttachShader");
-		glLinkProgram(_shaderProgram);
-		glUseProgram(_shaderProgram);
+		glLinkProgram(_globalProgram);
+		glUseProgram(_globalProgram);
 		checkGlError("glUseProgram");
 
 		// Specify the layout of the vertex data
-		GLint posAttrib = glGetAttribLocation(_shaderProgram, "position");
+		GLint posAttrib = glGetAttribLocation(_globalProgram, "a_position");
 		glEnableVertexAttribArray(posAttrib);
 		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
 
-		GLint colAttrib = glGetAttribLocation(_shaderProgram, "color");
+		GLint colAttrib = glGetAttribLocation(_globalProgram, "a_color");
 		glEnableVertexAttribArray(colAttrib);
 		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
+		glGetIntegerv(GL_VIEWPORT, _viewport);
+
+		_platform1 = new Platform(Vector2d(0, 0));
 	}
 
 	void Game::DrawFrame()
 	{
 		// Clear the screen to black
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		//glUseProgram(_globalProgram);
+
+		_platform1->DrawFrame();
+
+		//glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 
 		// Draw a rectangle from the 2 triangles using 6 indices
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+	}
+
+	int Game::GetWidth()
+	{
+		return _viewport[2];
+	}
+
+	int Game::GetHeight()
+	{
+		return _viewport[3];
 	}
 
 	void Game::Release()
 	{
-		glDeleteProgram(_shaderProgram);
+		glDeleteProgram(_globalProgram);
 		glDeleteShader(_fragmentShader);
 		glDeleteShader(_vertexShader);
 

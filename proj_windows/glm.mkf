@@ -1,0 +1,52 @@
+#!/usr/bin/env mkb
+
+defines
+{
+	GLM_FORCE_PURE
+	GLM_FORCE_CXX03
+}
+
+files
+{
+    ["source"]
+    (glm)
+	"*.hpp"
+	
+	["source/detail"]
+	(glm/detail)
+	"glm.cpp"
+	"*.hpp"
+	"*.inl"
+	
+	["source/gtc"]
+	(glm/gtc)
+	"*.hpp"
+	"*.inl"
+
+	["source/gtx"]
+	(glm/gtx)
+	"*.hpp"
+	"*.inl"
+	
+	["source"]
+	(".")
+	glm.defines.txt
+}
+
+includepaths
+{
+	.
+    #glm
+	#glm/detail
+	#glm/gtc
+	#glm/gtx
+}
+
+options 
+{ 
+    cflags="-std=gnu++0x"
+}
+
+subprojects
+{
+}

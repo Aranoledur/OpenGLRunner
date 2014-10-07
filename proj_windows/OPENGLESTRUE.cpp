@@ -9,7 +9,7 @@
 // Main entry point for the application
 int main()
 {
-	EasyGodzilla::Game game;
+	EasyGodzilla::Game& game = EasyGodzilla::Game::getInstance();
 
     //Initialise graphics system(s)
     if(!IwGLInit())

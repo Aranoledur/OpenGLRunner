@@ -13,12 +13,17 @@ files
     ../source/Game.h
     ../source/Game.cpp
     ../source/Helper.h
+    ../source/vector.hpp
+    ../source/vector.cpp
+    ../source/Platform.h
+    ../source/Platform.cpp
 }
 
 subprojects
 {
     iwutil
     iwgl
+    glm
 }
 
 deployment
