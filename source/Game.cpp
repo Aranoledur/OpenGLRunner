@@ -110,15 +110,15 @@ namespace EasyGodzilla
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		//glUseProgram(_globalProgram);
-
-		_platform1->DrawFrame();
-
-		//glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-
-		// Draw a rectangle from the 2 triangles using 6 indices
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		clock_t currentTime = clock();
+		clock_t dt = (currentTime - _previousTime);
+		if (dt >= DELTA_T)
+		{
+			printf("One frame 60 FPS \n");
+			_previousTime = currentTime;
+			dtPrecision dtInSec = (dtPrecision)dt / (dtPrecision)CLOCKS_PER_SEC;
+			_platform1->DrawFrame(dtInSec);
+		}
 	}
 
 	int Game::GetWidth()

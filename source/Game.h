@@ -23,12 +23,14 @@ namespace EasyGodzilla
 		GLuint _ebo;
 		GLuint _vbo;
 		GLint _viewport[4];
+		clock_t _previousTime;
 
 		Platform* _platform1;
 
 	public:
 		GLuint _globalProgram;
-		static const int DELTA_T = 10;
+		typedef float dtPrecision;
+		const clock_t DELTA_T = 0.017 * CLOCKS_PER_SEC;//delta in CLOCKS_PER_SEC
 		void Init();
 		void DrawFrame();
 		int GetWidth();

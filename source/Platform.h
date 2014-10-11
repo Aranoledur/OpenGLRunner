@@ -21,7 +21,7 @@ namespace EasyGodzilla
 		Vector2d _moveVelocity;
 
 		void tick(Vector2d acel);
-		void DrawFrame();
+		void DrawFrame(float dt);
 		bool IsSmallest() const;
 		void Downgrade();
 	};

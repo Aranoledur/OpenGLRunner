@@ -4,8 +4,6 @@
 #include <iostream>
 #include "Game.h"
 
-
-
 // Main entry point for the application
 int main()
 {
@@ -26,6 +24,7 @@ int main()
 
 	game.Init();
     
+	clock_t previousTime = clock();
 
     // Loop forever, until the user or the OS performs some action to quit the app
     while (!s3eDeviceCheckQuitRequest())
@@ -33,10 +32,9 @@ int main()
         //Update the input systems
         s3eKeyboardUpdate();
         s3ePointerUpdate();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
-        
-		game.DrawFrame();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		game.DrawFrame();
         // Call IwGL swap instead of egl directly
         IwGLSwapBuffers();
 

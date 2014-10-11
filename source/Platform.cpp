@@ -70,9 +70,9 @@ namespace EasyGodzilla
 		int width = gamePrt.GetWidth();
 		int height = gamePrt.GetHeight();
 
-		acel *= (Game::DELTA_T / 1000.0f);
+		//acel *= (Game::DELTA_T / 1000.0f);
 		_moveVelocity += acel;
-		_position += _moveVelocity * (Game::DELTA_T / 1000.0f);
+		//_position += _moveVelocity * (Game::DELTA_T / 1000.0f);
 		float outboundsFactor = 1.2f;
 		if (_position._x > width / 2 * outboundsFactor)
 			_position._x -= width * outboundsFactor;
@@ -82,25 +82,24 @@ namespace EasyGodzilla
 			_position._x += width * outboundsFactor;
 		if (_position._y < -height / 2 * outboundsFactor)
 			_position._y += height * outboundsFactor;
-		_angle += 3.0f * Game::DELTA_T / 1000.0f;
+		//_angle += 3.0f * Game::DELTA_T / 1000.0f;
 	}
 
 	glm::mat4 model;
 
-	void Platform::DrawFrame()
+	void Platform::DrawFrame(float dt)
 	{
 		glUseProgram(Game::getInstance()._globalProgram);
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 
-		model = glm::rotate(model, -0.5f, glm::vec3(0.0f, 0.0f, 1.0f));
+		model = glm::rotate(model, 60*dt, glm::vec3(0.0f, 0.0f, 1.0f));//60 degree per sec
 		//model = glm::translate(model, glm::vec3(-0.01f, -0.01f, 0.0f));
 
 		GLint uniTrans = glGetUniformLocation(Game::getInstance()._globalProgram, "model");
 		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 
 		glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
-		//glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
 		glm::mat4 scaleModel;
 		scaleModel = glm::scale(scaleModel, glm::vec3(1.f, 0.05f, 1.f));
