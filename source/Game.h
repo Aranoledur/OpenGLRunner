@@ -20,13 +20,11 @@ namespace EasyGodzilla
 	private:
 		GLuint _fragmentShader;
 		GLuint _vertexShader;
-		GLuint _ebo;
-		GLuint _vbo;
 		GLint _viewport[4];
 		clock_t _previousTime;
 
 		Platform* _platform1;
-
+		
 	public:
 		GLuint _globalProgram;
 		typedef float dtPrecision;
@@ -41,10 +39,7 @@ namespace EasyGodzilla
 		static Game* p_instance;
 		static GameDestroyer destroyer;
 	protected:
-		Game() { }
-		Game(const Game&);
-		Game& operator=(Game&);
-		~Game() { }
+		Game();
 		friend class GameDestroyer;
 	public:
 		static Game& getInstance();

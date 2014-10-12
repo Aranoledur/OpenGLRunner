@@ -85,7 +85,7 @@ namespace EasyGodzilla
 		int height = gamePrt.GetHeight();
 
 		//acel *= (Game::DELTA_T / 1000.0f);
-		_moveVelocity += acel;
+		//_moveVelocity += acel;
 		//_position += _moveVelocity * (Game::DELTA_T / 1000.0f);
 		float outboundsFactor = 1.2f;
 		if (_position._x > width / 2 * outboundsFactor)
@@ -107,43 +107,33 @@ namespace EasyGodzilla
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 		GLint uniTrans = glGetUniformLocation(Game::getInstance()._globalProgram, "model");
 
-		//draw thin lines
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 			glVertexAttribPointer(_posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
 			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+			auto viewWidth = Game::getInstance().GetWidth();
+			auto viewHeight = Game::getInstance().GetHeight();
 
-			model = glm::rotate(model, 60 * dt, glm::vec3(0.0f, 0.0f, 1.0f));//60 degree per sec
-			glm::mat4 scaleModel;
-			scaleModel = glm::scale(scaleModel, glm::vec3(0.5f, 0.5f, 1.0f));
+			auto some = _moveVelocity._x * dt / viewWidth;
+			model = glm::translate(model, glm::vec3(_moveVelocity._x * dt / viewWidth, _moveVelocity._y * dt / viewHeight, 0.f));
 
-			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model * scaleModel));
-			glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+			float offsetY = GetSign(_position._y) / viewHeight * 4.f * 8;
+			float baseXScale = 0.5f;
+			float baseYScale = 0.15f;
+			int lineWidth = 4;
+			for (int i = 0; i < lineWidth; ++i)
+			{
+				glm::mat4 localModel;
+				float localYScale = baseYScale - (float)i / viewHeight;
+				float localXScale = baseXScale - (float)i / viewWidth;
+				localModel = glm::scale(glm::mat4(), glm::vec3(localXScale, localYScale, 1.f));
+				localModel = glm::translate(localModel, glm::vec3(_position._x / viewWidth / localXScale, _position._y / viewHeight / localYScale, 0.f));
+				glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model * localModel));
+				glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+			}
+
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		}
-		//!draw thin lines
-
-		//draw bold lines
-		{
-			float width = 10;
-			glm::mat4 modelBold;
-			modelBold = glm::scale(modelBold, glm::vec3(0.5f, width / Game::getInstance().GetHeight(), 1.f));
-			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(modelBold));
-
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPoly);
-
-			glVertexAttribPointer(_posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices);
-			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, colorTop);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-			modelBold = glm::translate(glm::mat4(), glm::vec3(-0.5f, -0.5f, 1.f));
-			modelBold = glm::scale(modelBold, glm::vec3(width / Game::getInstance().GetWidth(), 0.5f, 1.f));
-			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(modelBold));
-			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, colorLeft);
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-
-		}
-		//!draw bold lines
 	}
 
 	bool Platform::IsSmallest() const

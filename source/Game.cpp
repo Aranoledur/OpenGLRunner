@@ -40,32 +40,13 @@ namespace EasyGodzilla
 		return *p_instance;
 	}
 
+	Game::Game()
+	{
+
+	}
+
 	void Game::Init()
 	{
-		// Create a Vertex Buffer Object and copy the vertex data to it
-		glGenBuffers(1, &_vbo);
-
-		GLfloat vertices[] = {
-			-0.5f, 0.5f, 1.0f, 0.0f, 0.0f, // Top-left
-			0.5f, 0.5f, 0.0f, 1.0f, 0.0f, // Top-right
-			0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
-			-0.5f, -0.5f, 1.0f, 1.0f, 1.0f  // Bottom-left
-		};
-
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-		// Create an element array
-		glGenBuffers(1, &_ebo);
-
-		GLuint elements[] = {
-			0, 1, 2,
-			2, 3, 0
-		};
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
-
 		// Create and compile the vertex shader
 		_vertexShader = glCreateShader(GL_VERTEX_SHADER);
 		glShaderSource(_vertexShader, 1, &vertexSource, NULL);
@@ -100,8 +81,11 @@ namespace EasyGodzilla
 		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
 		glGetIntegerv(GL_VIEWPORT, _viewport);
+		_previousTime = clock();
 
-		_platform1 = new Platform(Vector2d(0, 0));
+		_platform1 = new Platform(Vector2d(150, -GetHeight()*0.75f));
+		_platform1->_moveVelocity._x = -10;
+
 	}
 
 	void Game::DrawFrame()
@@ -136,8 +120,5 @@ namespace EasyGodzilla
 		glDeleteProgram(_globalProgram);
 		glDeleteShader(_fragmentShader);
 		glDeleteShader(_vertexShader);
-
-		glDeleteBuffers(1, &_ebo);
-		glDeleteBuffers(1, &_vbo);
 	}
 }

@@ -46,4 +46,10 @@ namespace EasyGodzilla
 			break;
 		};
 	}
+
+	template <class T>
+	static T GetSign(T number)
+	{		
+		return number == 0 ? 0 : number > 0 ? 1 : -1;
+	}
 }
