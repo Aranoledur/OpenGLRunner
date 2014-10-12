@@ -10,13 +10,16 @@ files
 {
     OPENGLESTRUE.cpp
     [source]
+    ../source/Helper.h
+    ../source/Helper.cpp
     ../source/Game.h
     ../source/Game.cpp
-    ../source/Helper.h
     ../source/vector.hpp
     ../source/vector.cpp
     ../source/Platform.h
     ../source/Platform.cpp
+    ../source/PlatformManager.h
+    ../source/PlatformManager.cpp
 }
 
 subprojects

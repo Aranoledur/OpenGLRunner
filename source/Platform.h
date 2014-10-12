@@ -8,24 +8,24 @@ namespace EasyGodzilla
 	class Platform
 	{
 		friend class Game;
-
 	private:
-		Platform(const Vector2d& position);
-		GLuint _vbo;
-		GLuint _ebo;
-		GLuint _posAttribute;
-		GLuint _colorAttribute;
+		static GLuint _vbo;
+		static GLuint _ebo;
+		Vector2d _moveDirection;
+		static void Init();
 
 	public:
-		float _size;
+		int _size;
 		float _angle;
 		Vector2d _position;
-		Vector2d _moveVelocity;
 
+		static bool isValid;
+		Platform(const Vector2d& position, int size);
 		void tick(Vector2d acel);
 		void DrawFrame(float dt);
 		bool IsSmallest() const;
 		void Downgrade();
+		void SetMoveDirection(const Vector2d& direction);
 	};
 }
 

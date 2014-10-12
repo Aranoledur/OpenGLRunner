@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "Platform.h"
+#include "PlatformManager.h"
 
 // Shader sources
 const GLchar* vertexSource =
@@ -40,6 +41,10 @@ namespace EasyGodzilla
 		return *p_instance;
 	}
 
+	float Game::xFactor = 1.f;
+	float Game::yFactor = 1.f;
+	float Game::gameSpeed = 1.f;
+
 	Game::Game()
 	{
 
@@ -71,20 +76,24 @@ namespace EasyGodzilla
 		glUseProgram(_globalProgram);
 		checkGlError("glUseProgram");
 
-		// Specify the layout of the vertex data
-		GLint posAttrib = glGetAttribLocation(_globalProgram, "a_position");
-		glEnableVertexAttribArray(posAttrib);
-		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+		_posAttribute = glGetAttribLocation(_globalProgram, "a_position");
+		glEnableVertexAttribArray(_posAttribute);
 
-		GLint colAttrib = glGetAttribLocation(_globalProgram, "a_color");
-		glEnableVertexAttribArray(colAttrib);
-		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+		_colorAttribute = glGetAttribLocation(_globalProgram, "a_color");
+		glEnableVertexAttribArray(_colorAttribute);
 
-		glGetIntegerv(GL_VIEWPORT, _viewport);
+		//our standard resolution.
+		_viewport[2] = 960;
+		_viewport[3] = 640;
+
+		GLint realResolution [4];
+		glGetIntegerv(GL_VIEWPORT, realResolution);
+		xFactor = (float)realResolution[2] / _viewport[2];
+		yFactor = (float)realResolution[3] / _viewport[3];
 		_previousTime = clock();
 
-		_platform1 = new Platform(Vector2d(150, -GetHeight()*0.75f));
-		_platform1->_moveVelocity._x = -10;
+		Platform::Init();
+		_platformMng = new PlatformManager;
 
 	}
 
@@ -98,10 +107,9 @@ namespace EasyGodzilla
 		clock_t dt = (currentTime - _previousTime);
 		if (dt >= DELTA_T)
 		{
-			printf("One frame 60 FPS \n");
 			_previousTime = currentTime;
 			dtPrecision dtInSec = (dtPrecision)dt / (dtPrecision)CLOCKS_PER_SEC;
-			_platform1->DrawFrame(dtInSec);
+			_platformMng->DrawFrame(dtInSec);
 		}
 	}
 

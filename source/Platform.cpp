@@ -49,12 +49,12 @@ namespace EasyGodzilla
 		0, 1, 2, 3
 	};
 
-	Platform::Platform(const Vector2d& position) :
-		_position(position),
-		_size(biggestSize)
-	{
-		_angle = (rand() % 31400 / 1000.0f);
+	GLuint Platform::_vbo = 100500;
+	GLuint Platform::_ebo = 100500;
+	bool Platform::isValid = false;
 
+	void Platform::Init()
+	{
 		glGenBuffers(1, &_vbo);
 		glGenBuffers(1, &eboPoly);
 
@@ -69,13 +69,16 @@ namespace EasyGodzilla
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPoly);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementsPoly), elementsPoly, GL_STATIC_DRAW);
 
-		_posAttribute = glGetAttribLocation(Game::getInstance()._globalProgram, "a_position");
-		glEnableVertexAttribArray(_posAttribute);
-
-		_colorAttribute = glGetAttribLocation(Game::getInstance()._globalProgram, "a_color");
-		glEnableVertexAttribArray(_colorAttribute);
-
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		isValid = true;
+	}
+
+	Platform::Platform(const Vector2d& position, int size) :
+		_position(position),
+		_size(size)
+	{
+		_angle = (rand() % 31400 / 1000.0f);
 	}
 
 	void Platform::tick(Vector2d acel)
@@ -99,36 +102,33 @@ namespace EasyGodzilla
 		//_angle += 3.0f * Game::DELTA_T / 1000.0f;
 	}
 
-	glm::mat4 model;
-
 	void Platform::DrawFrame(float dt)
 	{
+		auto viewWidth = Game::getInstance().GetWidth();
+		auto viewHeight = Game::getInstance().GetHeight();
+
 		glUseProgram(Game::getInstance()._globalProgram);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
 		GLint uniTrans = glGetUniformLocation(Game::getInstance()._globalProgram, "model");
 
+		_position._x += _moveDirection._x * Game::gameSpeed * dt;
+		_position._y += _moveDirection._y * Game::gameSpeed * dt;
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
-			glVertexAttribPointer(_posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
-			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
-			auto viewWidth = Game::getInstance().GetWidth();
-			auto viewHeight = Game::getInstance().GetHeight();
+			glVertexAttribPointer(Game::getInstance()._posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+			glVertexAttribPointer(Game::getInstance()._colorAttribute, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
-			auto some = _moveVelocity._x * dt / viewWidth;
-			model = glm::translate(model, glm::vec3(_moveVelocity._x * dt / viewWidth, _moveVelocity._y * dt / viewHeight, 0.f));
-
-			float offsetY = GetSign(_position._y) / viewHeight * 4.f * 8;
-			float baseXScale = 0.5f;
-			float baseYScale = 0.15f;
+			float baseXScale = (float)_size / viewWidth;//_size is in our coords. so we convert to view coords
+			float baseYScale = 0.15f;//in view coords
 			int lineWidth = 4;
 			for (int i = 0; i < lineWidth; ++i)
 			{
 				glm::mat4 localModel;
-				float localYScale = baseYScale - (float)i / viewHeight;
 				float localXScale = baseXScale - (float)i / viewWidth;
+				float localYScale = baseYScale - (float)i / viewHeight;
 				localModel = glm::scale(glm::mat4(), glm::vec3(localXScale, localYScale, 1.f));
-				localModel = glm::translate(localModel, glm::vec3(_position._x / viewWidth / localXScale, _position._y / viewHeight / localYScale, 0.f));
-				glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model * localModel));
+				localModel = glm::translate(localModel, glm::vec3(_position._x / viewWidth / localXScale*2, _position._y / viewHeight / localYScale*2, 0.f));//*2 because 1.f in translate is only viewSide/2, not viewSide
+				glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(localModel));
 				glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 			}
 
@@ -144,5 +144,10 @@ namespace EasyGodzilla
 	void Platform::Downgrade()
 	{
 		_size /= downgradeFactor;
+	}
+
+	void Platform::SetMoveDirection(const Vector2d& direction)
+	{
+		_moveDirection = direction;
 	}
 }
