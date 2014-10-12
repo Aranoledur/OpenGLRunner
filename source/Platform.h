@@ -13,6 +13,8 @@ namespace EasyGodzilla
 		Platform(const Vector2d& position);
 		GLuint _vbo;
 		GLuint _ebo;
+		GLuint _posAttribute;
+		GLuint _colorAttribute;
 
 	public:
 		float _size;

@@ -16,10 +16,26 @@ namespace EasyGodzilla
 	static const int smallestSize = biggestSize / downgradeFactor / downgradeAmount;
 
 	GLfloat vertices[] = {
-		-0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // Top-left
-		0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // Top-right
-		0.5f, -0.5f, 0.0f, 0.0f, 1.0f, // Bottom-right
-		-0.5f, -0.5f, 1.0f, 1.0f, 1.0f  // Bottom-left
+		-1.0f, 1.0f, 1.0f, 0.0f, 0.0f, // Top-left
+		1.f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
+		1.0f, -1.0f, 0.0f, 0.0f, 1.0f, // Bottom-right
+		-1.f, -1.f, 1.0f, 1.0f, 1.0f  // Bottom-left
+	};
+
+	GLfloat colorTop[] = 
+	{
+		1.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f
+	};
+
+	GLfloat colorLeft[] =
+	{
+		1.0f, 0.0f, 0.0f,
+		1.0f, 0.0f, 0.0f,
+		1.0f, 1.0f, 1.0f,
+		1.0f, 1.0f, 1.0f
 	};
 
 	GLuint elementsPoly[] = {
@@ -45,7 +61,6 @@ namespace EasyGodzilla
 		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-		// Create an element array
 		glGenBuffers(1, &_ebo);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
@@ -54,14 +69,13 @@ namespace EasyGodzilla
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPoly);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elementsPoly), elementsPoly, GL_STATIC_DRAW);
 
-		// Specify the layout of the vertex data
-		GLint posAttrib = glGetAttribLocation(Game::getInstance()._globalProgram, "a_position");
-		glEnableVertexAttribArray(posAttrib);
-		glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+		_posAttribute = glGetAttribLocation(Game::getInstance()._globalProgram, "a_position");
+		glEnableVertexAttribArray(_posAttribute);
 
-		GLint colAttrib = glGetAttribLocation(Game::getInstance()._globalProgram, "a_color");
-		glEnableVertexAttribArray(colAttrib);
-		glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+		_colorAttribute = glGetAttribLocation(Game::getInstance()._globalProgram, "a_color");
+		glEnableVertexAttribArray(_colorAttribute);
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
 	void Platform::tick(Vector2d acel)
@@ -90,23 +104,46 @@ namespace EasyGodzilla
 	void Platform::DrawFrame(float dt)
 	{
 		glUseProgram(Game::getInstance()._globalProgram);
-		glBindBuffer(GL_ARRAY_BUFFER, _vbo);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, _ebo);
-
-		model = glm::rotate(model, 60*dt, glm::vec3(0.0f, 0.0f, 1.0f));//60 degree per sec
-		//model = glm::translate(model, glm::vec3(-0.01f, -0.01f, 0.0f));
-
 		GLint uniTrans = glGetUniformLocation(Game::getInstance()._globalProgram, "model");
-		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model));
 
-		glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+		//draw thin lines
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, _vbo);
+			glVertexAttribPointer(_posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), 0);
+			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
-		glm::mat4 scaleModel;
-		scaleModel = glm::scale(scaleModel, glm::vec3(1.f, 0.05f, 1.f));
-		glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(scaleModel));
+			model = glm::rotate(model, 60 * dt, glm::vec3(0.0f, 0.0f, 1.0f));//60 degree per sec
+			glm::mat4 scaleModel;
+			scaleModel = glm::scale(scaleModel, glm::vec3(0.5f, 0.5f, 1.0f));
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPoly);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(model * scaleModel));
+			glDrawElements(GL_LINE_LOOP, sizeof(elements) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		}
+		//!draw thin lines
+
+		//draw bold lines
+		{
+			float width = 10;
+			glm::mat4 modelBold;
+			modelBold = glm::scale(modelBold, glm::vec3(0.5f, width / Game::getInstance().GetHeight(), 1.f));
+			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(modelBold));
+
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboPoly);
+
+			glVertexAttribPointer(_posAttribute, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), vertices);
+			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, colorTop);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+			modelBold = glm::translate(glm::mat4(), glm::vec3(-0.5f, -0.5f, 1.f));
+			modelBold = glm::scale(modelBold, glm::vec3(width / Game::getInstance().GetWidth(), 0.5f, 1.f));
+			glUniformMatrix4fv(uniTrans, 1, GL_FALSE, glm::value_ptr(modelBold));
+			glVertexAttribPointer(_colorAttribute, 3, GL_FLOAT, GL_FALSE, 0, colorLeft);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		}
+		//!draw bold lines
 	}
 
 	bool Platform::IsSmallest() const
